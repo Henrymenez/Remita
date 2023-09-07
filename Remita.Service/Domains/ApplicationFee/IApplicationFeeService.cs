@@ -2,7 +2,7 @@
 
 namespace Remita.Services.Domains.ApplicationFee;
 
-public interface IApplicationFee
+public interface IApplicationFeeService
 {
     Task<ApplicationFeeResponseDto> CreateApplicationFee(CreateApplicationFeeDto applicationFeeDto);
     Task<ApplicationFeeResponseDto> UpdateApplicationFee(string id, CreateApplicationFeeDto applicationFeeDto);

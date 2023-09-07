@@ -15,7 +15,7 @@ public class AdminService : IAdminService
         throw new NotImplementedException();
     }
 
-    public Task DeleteUser(string email)
+    public Task<bool> DeleteUser(string email)
     {
         throw new NotImplementedException();
     }
@@ -24,4 +24,6 @@ public class AdminService : IAdminService
     {
         throw new NotImplementedException();
     }
+
+   
 }

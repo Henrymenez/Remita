@@ -13,7 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Domains\User\" />
+    <Folder Include="Domains\FileExport\" />
+    <Folder Include="Domains\Fees\" />
+    <Folder Include="Domains\File\" />
+    <Folder Include="Domains\Claims\" />
+    <Folder Include="Domains\Route\" />
+    <Folder Include="Domains\Transcript\" />
+    <Folder Include="Domains\ResultUpload\" />
   </ItemGroup>
 
   <ItemGroup>
