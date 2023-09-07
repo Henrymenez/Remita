@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Remita.Api.Infrastructure;
 using Remita.Cache.Configuration;
 using Remita.Cache.Extensions;
-using Remita.Configuration;
 using Remita.Extensions;
 using Remita.Services.Utility;
 using System.Reflection;
@@ -48,14 +47,6 @@ namespace Remita.API
 
             services.AddAutoMapper(Assembly.Load("Remita.Services"));
             services.AddRedisCache(redisConfig);
-
-            RemitaApiConfig RemitaApiConfig = Configuration.Get<RemitaApiConfig>()!;
-            //builder.Services.BindConfigurations(builder.Configuration);
-
-
-            services.RegisterDbContext(RemitaApiConfig.ConnectionString);
-            services.RegisterAuthentication(RemitaApiConfig.Jwt);
-
 
 
             // Add services to the container.

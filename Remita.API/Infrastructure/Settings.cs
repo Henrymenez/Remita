@@ -7,9 +7,6 @@ namespace Remita.Api.Infrastructure
     {
         public JwtConfig? JwtConfig { get; set; }
         public RedisConfig? RedisConfig { get; set; }
-        //   public ElasticSearchConfig? ElasticSearch { get; set; }
-        //  public ServiceBusSettings? MWBServiceBus { get; init; }
-        //  public BlobSettings? MWBBlob { get; init; }
-
+  
     }
 }
