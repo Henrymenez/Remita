@@ -1,14 +1,13 @@
-using Remita.Extensions;
-using Remita.Configuration;
-using Remita.Models.DatabaseContexts;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Remita.Api.Infrastructure;
 using Remita.Cache.Configuration;
+using Remita.Cache.Extensions;
+using Remita.Configuration;
+using Remita.Extensions;
 using Remita.Services.Utility;
 using System.Reflection;
-using Microsoft.AspNetCore.HttpOverrides;
-using Remita.Cache.Extensions;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Remita.API
 {
@@ -45,10 +44,10 @@ namespace Remita.API
 
             services.SetupAppServices();
             services.RegisterDbContext(connectionString!);
-            services.RegisterAuthentication(jwtConfig);
+            // services.RegisterAuthentication(jwtConfig);
 
-           services.AddAutoMapper(Assembly.Load("Remita.Services"));
-           services.AddRedisCache(redisConfig);
+            services.AddAutoMapper(Assembly.Load("Remita.Services"));
+            services.AddRedisCache(redisConfig);
 
             RemitaApiConfig RemitaApiConfig = Configuration.Get<RemitaApiConfig>()!;
             //builder.Services.BindConfigurations(builder.Configuration);
@@ -57,7 +56,7 @@ namespace Remita.API
             services.RegisterDbContext(RemitaApiConfig.ConnectionString);
             services.RegisterAuthentication(RemitaApiConfig.Jwt);
 
-           
+
 
             // Add services to the container.
 
@@ -98,7 +97,7 @@ namespace Remita.API
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor
             });
 
-          //  app.UseHttpsRedirection();
+            //  app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
 
