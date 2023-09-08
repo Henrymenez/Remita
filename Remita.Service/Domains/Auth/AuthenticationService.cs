@@ -1,4 +1,6 @@
-﻿namespace Remita.Services.Domains.Auth;
+﻿using Remita.Services.Domains.Auth.Dtos;
+
+namespace Remita.Services.Domains.Auth;
 public class AuthenticationService : IAuthenticationService
 {
     /* private readonly UserManager<ApplicationUser> _userManager;
@@ -425,6 +427,29 @@ public class AuthenticationService : IAuthenticationService
           }
       }*/
 
+    public AuthenticationService()
+    {
+
+    }
+    public Task<AccountResponse> CreateUser(UserRegistrationRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AccountResponse> ForgotPasswordAsync(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AccountResponse> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<AuthenticationResponse> UserLogin(LoginRequest request)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 

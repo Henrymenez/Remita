@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Remita.Services.Domains.Transcript.Dtos;
 
-namespace Remita.Services.Domains.Transcript
+namespace Remita.Services.Domains.Transcript;
+
+public interface ITranscriptService
 {
-    internal interface ITranscriptService
-    {
-    }
+    Task<CreateApplicationResponseDto> CreateApplication(CreateApplicationDto applicationRequestDto);
+    Task<TranscriptResponse> UpdateApplicationStatus(TranscriptRequestDto request, string Id);
+
+    Task<bool> GenerateFees();
+
+
+ //   Task<(IEnumerable<TranscriptApplicationResponse> transcriptApplications, MetaData metaData)> GetAllTranscriptApplication(TranscriptAppParameter transcriptAppParameter);
+
 }
