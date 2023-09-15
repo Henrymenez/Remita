@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RMTS.Models.Enums
+namespace Remita.Models.Domains.Course
 {
     public enum Semester
     {
@@ -25,7 +25,7 @@ namespace RMTS.Models.Enums
 
         public static Semester GetSemester(string semester)
         {
-            return (semester) switch
+            return semester switch
             {
                 "first" => Semester.first,
                 "second" => Semester.second

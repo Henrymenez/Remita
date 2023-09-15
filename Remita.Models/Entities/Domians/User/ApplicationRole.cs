@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using RMTS.Models.Enums;
+using Remita.Models.Domains.User;
 
-namespace RMTS.Models.Entities
+namespace Remita.Models.Entities.Domians.User
 {
     public class ApplicationRole : IdentityRole
     {
@@ -19,7 +19,7 @@ namespace RMTS.Models.Entities
         public bool Active { get; set; } = true;
         public UserType Type { get; set; }
         public virtual ICollection<ApplicationRoleClaim> RoleClaims { get; set; }
-        
+
     }
 }
 

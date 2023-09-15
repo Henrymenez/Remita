@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RMTS.Models.Entities
+namespace Remita.Models.Entities.Domians.User
 {
     public class ApplicationUserRole : IdentityUserRole<string>
     {
-       
+
     }
 }

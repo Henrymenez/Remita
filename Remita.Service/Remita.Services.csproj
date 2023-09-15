@@ -15,7 +15,6 @@
   <ItemGroup>
     <Folder Include="Domains\Fees\" />
     <Folder Include="Domains\FileExport\Dtos\" />
-    <Folder Include="Domains\ResultUpload\Dtos\" />
     <Folder Include="Domains\Route\Dtos\" />
   </ItemGroup>
 

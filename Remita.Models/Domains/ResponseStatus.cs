@@ -1,5 +1,5 @@
 ﻿using System;
-namespace RMTS.Models.Enums
+namespace Remita.Models.Enums
 {
     public enum ResponseStatus
     {

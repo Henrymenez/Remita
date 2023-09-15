@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace RMTS.Models.Entities
+namespace Remita.Models.Entities.Domians.User
 {
     public class ApplicationRoleClaim : IdentityRoleClaim<string>
     {
