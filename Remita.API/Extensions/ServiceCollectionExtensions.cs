@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
             options.UseLazyLoadingProxies();
             options.UseSqlServer(connectionString, s =>
             {
-                s.MigrationsAssembly("MWB.Migrations");
+                s.MigrationsAssembly("Remita.Migrations");
                 s.EnableRetryOnFailure(3);
             });
         });

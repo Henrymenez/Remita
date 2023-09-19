@@ -8,7 +8,7 @@ public class ReviewResult : BaseEntity
     public ApprovalStatus ApprovalStatus { get; set; }
     public DateTime ActionDate { get; set; } = DateTime.Now;
     public string ReviewerId { get; set; } = null!;
-    public ApplicationUser Reviewer { get; set; } = null!;
+    public virtual ApplicationUser Reviewer { get; set; } = null!;
     public Guid ResultId { get; set; }
-    public Result Result { get; set; } = null!;
+    public virtual Result Result { get; set; } = null!;
 }

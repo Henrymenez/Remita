@@ -1,4 +1,4 @@
-﻿namespace Remita.Models.Domains.Course;
+﻿namespace Remita.Models.Domains.Course.Enum;
 
 public enum TranscriptApplicationStatus : int
 {

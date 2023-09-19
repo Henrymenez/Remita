@@ -19,6 +19,6 @@ public class Result : BaseEntity
     public string Semester { get; set; } = null!;
     public DateTime UploadedAt { get; set; } = DateTime.Now;
     public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
-    public string? UploaderId { get; set; }
-    public ApplicationUser? Uploader { get; set; }
+    public Guid UploaderId { get; set; }
+    public virtual  ApplicationUser? Uploader { get; set; }
 }

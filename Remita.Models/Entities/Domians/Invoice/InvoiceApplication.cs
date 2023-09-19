@@ -11,6 +11,6 @@ public class InvoiceApplication : BaseEntity
     [Column(TypeName = "decimal(18,4)")]
     public decimal? DeliveryFee { get; set; }
     public bool HasPaid { get; set; } = false;
-    public string ApplicationId { get; set; } = null!;
-    public TranscriptApplication Application { get; set; } = null!;
+    public Guid ApplicationId { get; set; }
+    public virtual TranscriptApplication Application { get; set; } = null!;
 }

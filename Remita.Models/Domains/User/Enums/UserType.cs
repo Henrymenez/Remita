@@ -1,4 +1,4 @@
-﻿namespace Remita.Models.Domains.User;
+﻿namespace Remita.Models.Domains.User.Enums;
 
 public enum UserType
 {

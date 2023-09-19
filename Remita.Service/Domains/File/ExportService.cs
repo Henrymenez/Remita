@@ -1,4 +1,4 @@
-﻿using Remita.Models.Entities.Domians.User;
+﻿using Remita.Models.Entities.Domians.Course;
 using Remita.Services.Domains.File.Dtos;
 
 namespace Remita.Services.Domains.File;

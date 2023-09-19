@@ -46,6 +46,7 @@ namespace Remita.API
             // services.RegisterAuthentication(jwtConfig);
 
             services.AddAutoMapper(Assembly.Load("Remita.Services"));
+
             services.AddRedisCache(redisConfig);
 
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Remita.Models.Domains.Course
+namespace Remita.Models.Domains.Course.Enum
 {
     public enum Semester
     {

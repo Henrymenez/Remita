@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Remita.Cache\Remita.Cache.csproj" />
     <ProjectReference Include="..\Remita.Data\Remita.Data.csproj" />
+    <ProjectReference Include="..\Remita.Migrations\Remita.Migrations.csproj" />
     <ProjectReference Include="..\Remita.Models\Remita.Models.csproj" />
     <ProjectReference Include="..\Remita.Service\Remita.Services.csproj" />
   </ItemGroup>

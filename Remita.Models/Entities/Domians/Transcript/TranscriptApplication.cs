@@ -1,6 +1,6 @@
 ﻿
 using Remita.Models.Domains.ApplicationFee.Enum;
-using Remita.Models.Domains.Course;
+using Remita.Models.Domains.Course.Enum;
 using Remita.Models.Entities.Domians.Invoice;
 using System.ComponentModel.DataAnnotations;
 
@@ -21,7 +21,7 @@ public class TranscriptApplication : BaseEntity
     [EmailAddress]
     public string? RecepientEmail { get; set; }
     public Guid? ApplicationInvoiceId { get; set; }
-    public InvoiceApplication ApplicationInvoice { get; set; } = null!;
+    public virtual InvoiceApplication ApplicationInvoice { get; set; } = null!;
     public bool HasPaid { get; set; } = false;
     public DeliveryFormat DeliveryFormat { get; set; }
     public TranscriptApplicationStatus Status { get; set; }

@@ -15,14 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remita.Data", "Remita.Data\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remita.Migrations", "Remita.Migrations\Remita.Migrations.csproj", "{B85EAF76-47A2-4929-9DA2-49B1AC0922D8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Remita.SharedDatabaseRepository", "Remita.SharedDatabaseRepository\Remita.SharedDatabaseRepository.csproj", "{47F316A8-09A5-4F02-BD44-337632B1243A}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration Test", "Integration Test", "{E48D12ED-E363-4474-B0AF-07D3B616C1C3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remita.Tests.Api.Integration", "Remita.Tests.Api.Integration\Remita.Tests.Api.Integration.csproj", "{C48CCAE7-0532-46BC-8C99-9A38CDD1B8EF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remita.Tests.Integration.Shared", "Remita.Tests.Integration.Shared\Remita.Tests.Integration.Shared.csproj", "{A0048D9D-833E-419E-A5A9-E1669896BF75}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,25 +45,9 @@ Global
 		{B85EAF76-47A2-4929-9DA2-49B1AC0922D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B85EAF76-47A2-4929-9DA2-49B1AC0922D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B85EAF76-47A2-4929-9DA2-49B1AC0922D8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47F316A8-09A5-4F02-BD44-337632B1243A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47F316A8-09A5-4F02-BD44-337632B1243A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47F316A8-09A5-4F02-BD44-337632B1243A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47F316A8-09A5-4F02-BD44-337632B1243A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C48CCAE7-0532-46BC-8C99-9A38CDD1B8EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C48CCAE7-0532-46BC-8C99-9A38CDD1B8EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C48CCAE7-0532-46BC-8C99-9A38CDD1B8EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C48CCAE7-0532-46BC-8C99-9A38CDD1B8EF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A0048D9D-833E-419E-A5A9-E1669896BF75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A0048D9D-833E-419E-A5A9-E1669896BF75}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A0048D9D-833E-419E-A5A9-E1669896BF75}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A0048D9D-833E-419E-A5A9-E1669896BF75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{C48CCAE7-0532-46BC-8C99-9A38CDD1B8EF} = {E48D12ED-E363-4474-B0AF-07D3B616C1C3}
-		{A0048D9D-833E-419E-A5A9-E1669896BF75} = {E48D12ED-E363-4474-B0AF-07D3B616C1C3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CFF3E18C-A511-47E8-8F0E-174BD00E54B9}

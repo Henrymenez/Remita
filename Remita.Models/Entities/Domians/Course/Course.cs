@@ -7,5 +7,6 @@ public class Course : BaseEntity
     public string Code { get; set; } = null!;
     public string Title { get; set; } = null!;
     public int Unit { get; set; }
-    public ApplicationUser Teacher { get; set; }
+    public string TeacherId { get; set; } = null!;
+    public virtual ApplicationUser Teacher { get; set; } = null!;
 }

@@ -1,4 +1,4 @@
-﻿using RMTS.Models.Enums;
+﻿using Remita.Models.Domains.ApplicationFee.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace Remita.Services.Domains.Results.Dtos;
