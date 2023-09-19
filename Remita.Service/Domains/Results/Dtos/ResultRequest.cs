@@ -10,5 +10,5 @@ public record ResultRequest
     [Required]
     public ApprovalStatus ApprovalStatus { get; set; }
     [Required]
-    public string ApproverId { get; set; }
+    public string ApproverId { get; set; } = null!;
 }

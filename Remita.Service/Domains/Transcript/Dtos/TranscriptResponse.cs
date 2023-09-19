@@ -2,6 +2,6 @@
 
 public record TranscriptResponse
 {
-    public string RejectionReason { get; set; }
-    public string Status { get; set; }
+    public string RejectionReason { get; set; } = null!;
+    public string Status { get; set; } = null!;
 }

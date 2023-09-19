@@ -11,7 +11,7 @@ using Remita.Models.Entities.Domians.Transcript;
 using Remita.Models.Entities.Domians.User;
 
 namespace Remita.Models.DatabaseContexts;
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {

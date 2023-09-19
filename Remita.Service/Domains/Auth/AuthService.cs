@@ -459,12 +459,14 @@ public class AuthService : IAuthService
             }
             var roleName = Constants.DefaultRoleName;
             ApplicationRole? userRole = await _roleManager.FindByNameAsync(roleName);
+            
             ApplicationUser user = new()
             {
 
                 Email = request.Email.ToLower(),
                 UserName = request.UserName.Trim().ToLower(),
-                FirstName = request.Firstname.Trim(),
+                MiddleName = request.MiddleName.Trim(),
+                FirstName = request.FirstName,
                 LastName = request.LastName.Trim(),
                 MatricNumber = request.MatricNumber,
                 Department = request.Department,

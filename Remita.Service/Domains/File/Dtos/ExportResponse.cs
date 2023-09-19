@@ -2,7 +2,7 @@
 
 public record ExportResponse
 {
-    public string Message { get; set; }
+    public string Message { get; set; } = null!;
     public bool success { get; set; }
     public string? Error { get; set; }
 }

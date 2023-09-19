@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.DependencyInjection;
 using Remita.Api.Infrastructure;
 using Remita.Cache.Configuration;
 using Remita.Cache.Extensions;
+using Remita.Data.Seeds;
 using Remita.Extensions;
+using Remita.Models.DatabaseContexts;
+using Remita.Models.Entities.Domians.User;
 using Remita.Services.Utility;
 using System.Reflection;
 
@@ -49,6 +54,9 @@ namespace Remita.API
 
             services.AddRedisCache(redisConfig);
 
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
+       .AddEntityFrameworkStores<ApplicationDbContext>() // Replace YourDbContext with your actual DbContext
+       .AddDefaultTokenProviders();
 
             // Add services to the container.
 
@@ -70,6 +78,8 @@ namespace Remita.API
 
             var app = builder.Build();
             IApiVersionDescriptionProvider provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+            IServiceProvider serviceProvider = services.BuildServiceProvider()!;
+            ApplicationDbContext context = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -94,6 +104,7 @@ namespace Remita.API
             app.UseAuthorization();
 
             app.MapControllers();
+            context.SeedData();
 
             app.Run();
         }

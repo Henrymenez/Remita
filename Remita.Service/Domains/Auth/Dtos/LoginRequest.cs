@@ -5,8 +5,8 @@ namespace Remita.Services.Domains.Auth.Dtos;
 public record LoginRequest
 {
     [Required]
-    public string UserName { get; set; }
+    public string UserName { get; set; } = null!;
 
     [Required]
-    public string Password { get; set; }
+    public string Password { get; set; } = null!;
 }

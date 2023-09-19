@@ -2,6 +2,6 @@
 
 public record ResultResponse
 {
-    public string Message { get; set; }
+    public string Message { get; set; } = null!;
     public bool IsSuccessful { get; set; }
 }

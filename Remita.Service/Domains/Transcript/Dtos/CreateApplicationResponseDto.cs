@@ -3,6 +3,6 @@
 public record CreateApplicationResponseDto
 {
     public bool Success { get; set; }
-    public string Message { get; set; }
-    public string ApplicationId { get; set; }
+    public string Message { get; set; } = null!;
+    public string ApplicationId { get; set; } = null!;
 }
