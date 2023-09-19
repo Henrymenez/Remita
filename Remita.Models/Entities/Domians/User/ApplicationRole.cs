@@ -10,10 +10,6 @@ namespace Remita.Models.Entities.Domians.User
 
         }
 
-        public ApplicationRole()
-        {
-
-        }
         public string UserId { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }

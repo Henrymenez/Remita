@@ -1,11 +1,11 @@
 ﻿using Remita.Services.Domains.Auth.Dtos;
 using Remita.Services.Utility;
 
-namespace Remita.Services.Domains.Auth.Interface;
+namespace Remita.Services.Domains.Auth;
 /// <summary>
 /// handles authentication related tasks
 /// </summary>
-public interface IAuthenticationService
+public interface IAuthService
 {
     /// <summary>
     /// Generates a new access token using the users refresh token

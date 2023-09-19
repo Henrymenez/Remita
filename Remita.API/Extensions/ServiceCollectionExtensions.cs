@@ -8,6 +8,7 @@ using Remita.Data.Implementation;
 using Remita.Data.Interfaces;
 using Remita.Models.DatabaseContexts;
 using Remita.Models.Entities.Domians.User;
+using Remita.Services.Domains.Auth;
 using Remita.Services.Utility;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
@@ -19,9 +20,10 @@ public static class ServiceCollectionExtensions
     public static void SetupAppServices(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork<ApplicationDbContext>, UnitOfWork<ApplicationDbContext>>();
+        services.AddTransient<IAuthService, AuthService>();
 
-     
-       
+
+
     }
 
     public static void RegisterDbContext(this IServiceCollection services, string? connectionString)

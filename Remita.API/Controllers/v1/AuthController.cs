@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Remita.Controllers.v1.Shared;
 using Remita.Models.Utility;
+using Remita.Services.Domains.Auth;
 using Remita.Services.Domains.Auth.Dtos;
-using Remita.Services.Domains.Auth.Interface;
 using Remita.Services.Utility;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
@@ -171,8 +171,8 @@ public class AuthController : BaseController
          return ComputeResponse(Result);
      }*/
 
-    private readonly IAuthenticationService _authService;
-    public AuthController(IAuthenticationService authService)
+    private readonly IAuthService _authService;
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
     }
