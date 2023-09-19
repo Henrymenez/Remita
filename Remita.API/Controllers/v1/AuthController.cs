@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Remita.Controllers.v1.Shared;
 using Remita.Models.Utility;
 using Remita.Services.Domains.Auth;
 using Remita.Services.Domains.Auth.Dtos;
 using Remita.Services.Utility;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 
 [Route("api/v{version:apiVersion}/auth")]
@@ -199,52 +197,119 @@ public class AuthController : BaseController
         return ComputeApiResponse(result);
     }
 
-
-    [AllowAnonymous]
-    [HttpPost("login", Name = "Login")]
-    [SwaggerOperation(Summary = "Authenticates user")]
-    /* [SwaggerResponse(StatusCodes.Status200OK, Description = "returns user Id", Type = typeof(AuthenticationResponse))]
-     [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
-     [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
-    public async Task<ActionResult<AuthenticationResponse>> Login(LoginRequest request)
+    [HttpPost("sign-in")]
+    [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AuthenticationResponse>))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        AuthenticationResponse response = await _authService.UserLogin(request);
-        return Ok(response);
-    }
-
-
-
-    [AllowAnonymous]
-    [HttpPost("forgot-password", Name = "Forgot password")]
-    [SwaggerOperation(Summary = "forgot password")]
-    /*  [SwaggerResponse(StatusCodes.Status200OK, Description = "forgot password", Type = typeof(AuthenticationResponse))]
-      [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
-      [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
-    public async Task<IActionResult> ForgotPassword(string email)
-    {
-        AccountResponse response = await _authService.ForgotPasswordAsync(email);
-        return Ok(response);
-    }
-
-
-    [AllowAnonymous]
-    [HttpPost("reset-password", Name = "Reset Password")]
-    [SwaggerOperation(Summary = "forgot password")]
-    /* [SwaggerResponse(StatusCodes.Status200OK, Description = "returns password reset succssfully", Type = typeof(AuthenticationResponse))]
-     [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
-     [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
-    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
-    {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var result = await _authService.ResetPasswordAsync(request);
-
-            if (result.Success)
-                return Ok(result);
-
-            return BadRequest(result);
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            var response = new ServiceResponse<AuthenticationResponse>()
+            {
+                Message = errors.FirstOrDefault(),
+                StatusCode = HttpStatusCode.BadRequest
+            };
+            return ComputeApiResponse(response);
         }
 
-        return BadRequest("Some properties are not valid");
+        var result = await _authService.UserLogin(request);
+        return ComputeApiResponse(result);
     }
+
+
+
+    [HttpPost("password-reset-otp")]
+    [ProducesResponseType(200, Type = typeof(ApiResponse))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
+    public async Task<IActionResult> ForgotPassword(string email)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            var response = new ServiceResponse()
+            {
+                Message = errors.FirstOrDefault(),
+                StatusCode = HttpStatusCode.BadRequest
+            };
+            return ComputeResponse(response);
+        }
+        var Result = await _authService.ForgotPasswordAsync(email);
+        return ComputeResponse(Result);
+    }
+
+
+    [HttpPost("password-reset")]
+    [ProducesResponseType(200, Type = typeof(ApiResponse))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            var response = new ServiceResponse()
+            {
+                Message = errors.FirstOrDefault(),
+                StatusCode = HttpStatusCode.BadRequest
+            };
+            return ComputeResponse(response);
+        }
+        var Result = await _authService.ResetPasswordAsync(request);
+        return ComputeResponse(Result);
+    }
+
+    [HttpPost("verify-email-otp")]
+    [ProducesResponseType(200, Type = typeof(ApiResponse))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
+    public async Task<IActionResult> VerifyEmailOtp([FromBody] ConfirmationEmailOtpDto model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            var response = new ServiceResponse()
+            {
+                Message = errors.FirstOrDefault(),
+                StatusCode = HttpStatusCode.BadRequest
+            };
+            return ComputeResponse(response);
+        }
+        ServiceResponse Result = await _authService.SendEmailConfirmationOtpAsync(model);
+        return ComputeResponse(Result);
+    }
+
+    [HttpPost("verify-email")]
+    [ProducesResponseType(200, Type = typeof(ApiResponse))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
+    public async Task<IActionResult> VerifyEmail([FromBody] ConfirmEmailDto model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            var response = new ServiceResponse()
+            {
+                Message = errors.FirstOrDefault(),
+                StatusCode = HttpStatusCode.BadRequest
+            };
+            return ComputeResponse(response);
+        }
+        var Result = await _authService.ConfirmEmailAsync(model);
+        return ComputeResponse(Result);
+    }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(200, Type = typeof(ApiResponse))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
+    public async Task<IActionResult> Refresh(string accessToken, string refreshToken)
+    {
+        var tokenResponse = await _authService.RefreshAccessTokenAsync(accessToken, refreshToken);
+        return ComputeResponse(tokenResponse);
+    }
+
+  
 }

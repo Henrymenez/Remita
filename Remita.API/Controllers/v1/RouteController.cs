@@ -27,7 +27,7 @@ public class RouteController : BaseController
     [SwaggerResponse(StatusCodes.Status200OK, Description = "Routes Retrieved")]
     [SwaggerResponse(StatusCodes.Status403Forbidden, Description = "Unauthorized User", Type = typeof(ErrorResponse))]
     [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]
-    public async Task<IActionResult> GetRoutes()
+    public IActionResult GetRoutes()
     {
         var endpoints = _endpointSources.SelectMany(es => es.Endpoints)
         .OfType<RouteEndpoint>();

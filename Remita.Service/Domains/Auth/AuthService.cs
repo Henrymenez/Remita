@@ -1,9 +1,17 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Remita.Data.Interfaces;
+using Remita.Models.DatabaseContexts;
+using Remita.Models.Domains.User.Enums;
 using Remita.Models.Entities.Domians.User;
 using Remita.Models.Exceptions;
 using Remita.Services.Domains.Auth.Dtos;
 using Remita.Services.Utility;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
+using System.Text;
 using Constants = Remita.Models.Commons.Constants;
 
 namespace Remita.Services.Domains.Auth;
@@ -435,11 +443,25 @@ public class AuthService : IAuthService
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
-    public AuthService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+    private readonly IUnitOfWork<ApplicationDbContext> _unitOfWork;
+    private readonly IConfiguration _configuration;
+    private readonly JwtConfig _jwtConfig;
+    public AuthService(UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager, IUnitOfWork<ApplicationDbContext> unitOfWork,
+        IConfiguration configuration, JwtConfig jwtConfig)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _unitOfWork = unitOfWork;
+        _configuration = configuration;
+        _jwtConfig = jwtConfig;
     }
+
+    public Task<ServiceResponse> ConfirmEmailAsync(ConfirmEmailDto otpDto)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<ServiceResponse<AccountResponse>> CreateUser(UserRegistrationRequest request)
     {
         try
@@ -459,14 +481,14 @@ public class AuthService : IAuthService
             }
             var roleName = Constants.DefaultRoleName;
             ApplicationRole? userRole = await _roleManager.FindByNameAsync(roleName);
-            
+
             ApplicationUser user = new()
             {
 
                 Email = request.Email.ToLower(),
                 UserName = request.UserName.Trim().ToLower(),
-                MiddleName = request.MiddleName.Trim(),
-                FirstName = request.FirstName,
+                MiddleName = request.MiddleName,
+                FirstName = request.FirstName.Trim(),
                 LastName = request.LastName.Trim(),
                 MatricNumber = request.MatricNumber,
                 Department = request.Department,
@@ -504,7 +526,7 @@ public class AuthService : IAuthService
             };
             return new ServiceResponse<AccountResponse>
             {
-                StatusCode = HttpStatusCode.OK,
+                StatusCode = HttpStatusCode.Created,
                 Data = AccountResult
             };
         }
@@ -518,17 +540,126 @@ public class AuthService : IAuthService
         }
     }
 
-    public Task<AccountResponse> ForgotPasswordAsync(string email)
+    public Task<ServiceResponse<AuthenticationResponse>> RefreshAccessTokenAsync(string accessToken, string refreshToken)
     {
         throw new NotImplementedException();
     }
 
-    public Task<AccountResponse> ResetPasswordAsync(ResetPasswordRequest request)
+    public Task<ServiceResponse> SendEmailConfirmationOtpAsync(ConfirmationEmailOtpDto otpDto)
     {
         throw new NotImplementedException();
     }
 
-    public Task<AuthenticationResponse> UserLogin(LoginRequest request)
+    public async Task<ServiceResponse<AuthenticationResponse>> UserLogin(LoginRequest request)
+    {
+        try
+        {
+            ApplicationUser? user = await _userManager.FindByNameAsync(request.UserName.ToLower().Trim());
+
+            if (user == null)
+            {
+                throw new AuthenticationException("Invalid username or password");
+            }
+
+
+            if (!user.Active)
+            {
+                throw new AuthenticationException("Account is not active");
+            }
+
+
+            bool result = await _userManager.CheckPasswordAsync(user, request.Password);
+
+            if (!result)
+            {
+                throw new AuthenticationException("Invalid username or password");
+            }
+
+            JwtToken userToken = GenerateJwtToken(user);
+
+            string? userType = user.UserType.GetStringValue();
+
+            string fullName = string.IsNullOrWhiteSpace(user.MiddleName)
+                ? $"{user.LastName} {user.FirstName}"
+                : $"{user.LastName} {user.FirstName} {user.MiddleName}";
+
+
+            var authResult = new AuthenticationResponse { JwtToken = userToken, UserType = userType, FullName = fullName, TwoFactor = false, UserId = user.Id };
+            return new ServiceResponse<AuthenticationResponse>()
+            {
+                Data = authResult,
+                StatusCode = HttpStatusCode.OK,
+                Message = "Logged In"
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ServiceResponse<AuthenticationResponse>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = ex.Message
+            };
+        }
+    }
+
+    public Task<ServiceResponse> ForgotPasswordAsync(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    private JwtToken GenerateJwtToken(ApplicationUser user, string expires = null, List<Claim> additionalClaims = null)
+    {
+        JwtSecurityTokenHandler jwtTokenHandler = new();
+        // string jwtConfig = _configuration.GetSection("JwtConfig:JwtKey").Value!;
+
+        var key = Encoding.ASCII.GetBytes(_jwtConfig.JwtKey);
+        string userRole = user.UserType.GetStringValue()!;
+
+        IdentityOptions _options = new();
+
+        var claims = new List<Claim>
+            {
+                new Claim("Id", user.Id),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(_options.ClaimsIdentity.UserIdClaimType, user.Id),
+                new Claim(_options.ClaimsIdentity.UserNameClaimType, user.UserName!),
+                new Claim(ClaimTypes.Role, userRole!)
+        };
+
+        if (additionalClaims != null)
+        {
+            claims.AddRange(additionalClaims);
+        }
+
+        string issuer = _jwtConfig.JwtIssuer;
+        string audience = _jwtConfig.JwtAudience;
+        string expire = _jwtConfig.JwtExpireMinutes;
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Expires = string.IsNullOrWhiteSpace(expires)
+                ? DateTime.Now.AddHours(double.Parse(expire))
+                : DateTime.Now.AddMinutes(double.Parse(expires)),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
+            Issuer = issuer,
+            Audience = audience
+        };
+
+        var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+        var jwtToken = jwtTokenHandler.WriteToken(token);
+
+        return new JwtToken
+        {
+            Token = jwtToken,
+            Issued = DateTime.Now,
+            Expires = tokenDescriptor.Expires
+        };
+    }
+
+    public Task<ServiceResponse> ResetPasswordAsync(ResetPasswordRequest request)
     {
         throw new NotImplementedException();
     }

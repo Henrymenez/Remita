@@ -1,6 +1,8 @@
-﻿namespace Remita.Services.Domains.Auth.Dtos;
+﻿using Remita.Models.Utility;
 
-public record AuthenticationResponse
+namespace Remita.Services.Domains.Auth.Dtos;
+
+public record AuthenticationResponse : BaseRecord
 {
     public JwtToken JwtToken { get; set; } = null!;
     public string UserType { get; set; } = null!;
