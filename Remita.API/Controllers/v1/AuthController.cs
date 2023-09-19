@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Remita.Controllers.v1.Shared;
-using Remita.Services.Domains.Auth;
+using Remita.Models.Utility;
 using Remita.Services.Domains.Auth.Dtos;
+using Remita.Services.Domains.Auth.Interface;
+using Remita.Services.Utility;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Net;
 
 [Route("api/v{version:apiVersion}/auth")]
 [ApiVersion("1.0")]
@@ -174,26 +177,35 @@ public class AuthController : BaseController
         _authService = authService;
     }
 
-    [AllowAnonymous]
-    [HttpPost("create-new-user", Name = "Create-New-User")]
-    [SwaggerOperation(Summary = "Creates user")]
-  /*  [SwaggerResponse(StatusCodes.Status200OK, Description = "UserId of created user", Type = typeof(AuthenticationResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "User with provided email already exists", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Failed to create user", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
-    public async Task<IActionResult> CreateUser(UserRegistrationRequest request)
+
+    [HttpPost("sign-up")]
+    [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AccountResponse>))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
+    public async Task<IActionResult> CreateUser([FromBody] UserRegistrationRequest request)
     {
-        AccountResponse response = await _authService.CreateUser(request);
-        return Ok(response);
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            var response = new ServiceResponse<AccountResponse>()
+            {
+                Message = errors.FirstOrDefault(),
+                StatusCode = HttpStatusCode.BadRequest
+            };
+            return ComputeApiResponse(response);
+        }
+
+        var result = await _authService.CreateUser(request);
+        return ComputeApiResponse(result);
     }
 
 
     [AllowAnonymous]
     [HttpPost("login", Name = "Login")]
     [SwaggerOperation(Summary = "Authenticates user")]
-   /* [SwaggerResponse(StatusCodes.Status200OK, Description = "returns user Id", Type = typeof(AuthenticationResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
+    /* [SwaggerResponse(StatusCodes.Status200OK, Description = "returns user Id", Type = typeof(AuthenticationResponse))]
+     [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
+     [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
     public async Task<ActionResult<AuthenticationResponse>> Login(LoginRequest request)
     {
         AuthenticationResponse response = await _authService.UserLogin(request);
@@ -205,9 +217,9 @@ public class AuthController : BaseController
     [AllowAnonymous]
     [HttpPost("forgot-password", Name = "Forgot password")]
     [SwaggerOperation(Summary = "forgot password")]
-  /*  [SwaggerResponse(StatusCodes.Status200OK, Description = "forgot password", Type = typeof(AuthenticationResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
+    /*  [SwaggerResponse(StatusCodes.Status200OK, Description = "forgot password", Type = typeof(AuthenticationResponse))]
+      [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
+      [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
     public async Task<IActionResult> ForgotPassword(string email)
     {
         AccountResponse response = await _authService.ForgotPasswordAsync(email);
@@ -218,9 +230,9 @@ public class AuthController : BaseController
     [AllowAnonymous]
     [HttpPost("reset-password", Name = "Reset Password")]
     [SwaggerOperation(Summary = "forgot password")]
-   /* [SwaggerResponse(StatusCodes.Status200OK, Description = "returns password reset succssfully", Type = typeof(AuthenticationResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
+    /* [SwaggerResponse(StatusCodes.Status200OK, Description = "returns password reset succssfully", Type = typeof(AuthenticationResponse))]
+     [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Invalid username or password", Type = typeof(ErrorResponse))]
+     [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
     {
         if (ModelState.IsValid)

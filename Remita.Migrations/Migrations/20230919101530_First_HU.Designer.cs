@@ -12,7 +12,7 @@ using Remita.Models.DatabaseContexts;
 namespace Remita.Migrations.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230919090205_First_HU")]
+    [Migration("20230919101530_First_HU")]
     partial class First_HU
     {
         /// <inheritdoc />
@@ -708,6 +708,9 @@ namespace Remita.Migrations.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("UserType")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

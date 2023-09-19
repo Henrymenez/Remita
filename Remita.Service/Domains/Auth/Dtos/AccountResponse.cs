@@ -1,10 +1,11 @@
-﻿namespace Remita.Services.Domains.Auth.Dtos
+﻿using Remita.Models.Utility;
+
+namespace Remita.Services.Domains.Auth.Dtos;
+
+public record AccountResponse: BaseRecord
 {
-    public record AccountResponse
-    {
-        public string UserId { get; set; }
-        public string UserName { get; set; }
-        public bool Success { get; set; }
-        public string Message { get; set; }
-    }
+    public string UserId { get; set; } = null!;
+    public string UserName { get; set; } = null!;
+    public bool Success { get; set; }
+    public string? Message { get; set; } 
 }

@@ -1,6 +1,12 @@
-﻿using Remita.Services.Domains.Auth.Dtos;
+﻿using Microsoft.AspNetCore.Identity;
+using Remita.Models.Entities.Domians.User;
+using Remita.Services.Domains.Auth.Dtos;
+using Remita.Services.Domains.Auth.Interface;
+using Remita.Services.Utility;
+using System.Net;
+using Constants = Remita.Models.Commons.Constants;
 
-namespace Remita.Services.Domains.Auth;
+namespace Remita.Services.Domains.Auth.Implementation;
 public class AuthenticationService : IAuthenticationService
 {
     /* private readonly UserManager<ApplicationUser> _userManager;
@@ -427,13 +433,87 @@ public class AuthenticationService : IAuthenticationService
           }
       }*/
 
-    public AuthenticationService()
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
+    public AuthenticationService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
     {
-
+        _userManager = userManager;
+        _roleManager = roleManager;
     }
-    public Task<AccountResponse> CreateUser(UserRegistrationRequest request)
+    public async Task<ServiceResponse<AccountResponse>> CreateUser(UserRegistrationRequest request)
     {
-        throw new NotImplementedException();
+        try
+        {
+            ApplicationUser? existingUser = await _userManager.FindByEmailAsync(request.Email);
+
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException($"User already exists with Email {request.Email}");
+            }
+
+            existingUser = await _userManager.FindByNameAsync(request.UserName);
+
+            if (existingUser != null)
+            {
+                throw new InvalidOperationException($"User already exists with username {request.UserName}");
+            }
+            var roleName = Constants.DefaultRoleName;
+            ApplicationRole? userRole = await _roleManager.FindByNameAsync(roleName);
+            ApplicationUser user = new()
+            {
+
+                Email = request.Email.ToLower(),
+                UserName = request.UserName.Trim().ToLower(),
+                FirstName = request.Firstname.Trim(),
+                LastName = request.LastName.Trim(),
+                MatricNumber = request.MatricNumber,
+                Department = request.Department,
+                PhoneNumber = request.MobileNumber,
+                Active = true,
+                UserType = userRole.Type
+            };
+
+            IdentityResult result = await _userManager.CreateAsync(user, request.Password);
+
+            if (!result.Succeeded)
+            {
+                var message = $"Failed to create user: {(result.Errors.FirstOrDefault())?.Description}";
+                throw new InvalidOperationException(message);
+            }
+
+            string? role = user.UserType.ToString();
+            bool roleExist = await _roleManager.RoleExistsAsync(role);
+            if (roleExist)
+            {
+                await _userManager.AddToRoleAsync(user, role);
+            }
+            else
+            {
+                await _roleManager.CreateAsync(new ApplicationRole(role));
+            }
+
+            var AccountResult = new AccountResponse()
+            {
+                UserId = user.Id,
+                UserName = user.UserName,
+                Success = true,
+                Message = "your account has been created"
+
+            };
+            return new ServiceResponse<AccountResponse>
+            {
+                StatusCode = HttpStatusCode.OK,
+                Data = AccountResult
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ServiceResponse<AccountResponse>
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = ex.Message
+            };
+        }
     }
 
     public Task<AccountResponse> ForgotPasswordAsync(string email)

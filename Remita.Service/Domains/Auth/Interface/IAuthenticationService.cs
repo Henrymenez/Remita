@@ -1,7 +1,7 @@
 ﻿using Remita.Services.Domains.Auth.Dtos;
 using Remita.Services.Utility;
 
-namespace Remita.Services.Domains.Auth;
+namespace Remita.Services.Domains.Auth.Interface;
 /// <summary>
 /// handles authentication related tasks
 /// </summary>
@@ -60,7 +60,7 @@ public interface IAuthenticationService
     /*Task<ServiceResponse> VerifyEmailAsync(VerifyEmailDto model);*/
 
 
-    Task<AccountResponse> CreateUser(UserRegistrationRequest request);
+    Task<ServiceResponse<AccountResponse>> CreateUser(UserRegistrationRequest request);
     Task<AuthenticationResponse> UserLogin(LoginRequest request);
     Task<AccountResponse> ForgotPasswordAsync(string email);
     Task<AccountResponse> ResetPasswordAsync(ResetPasswordRequest request);
