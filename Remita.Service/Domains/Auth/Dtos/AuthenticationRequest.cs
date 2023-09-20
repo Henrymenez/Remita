@@ -15,6 +15,7 @@ public record AuthenticationResponse : BaseRecord
 public record JwtToken
 {
     public string Token { get; set; } = null!;
+    public string RefreshToken { get; set; } = null!;
     public DateTime Issued { get; set; }
     public DateTime? Expires { get; set; }
 }

@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Remita.Cache.Interfaces;
 using Remita.Data.Interfaces;
@@ -26,19 +24,17 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IUnitOfWork<ApplicationDbContext> _unitOfWork;
-    private readonly IConfiguration _configuration;
     private readonly JwtConfig _jwtConfig;
-    private readonly TimeSpan RefreshTokenValidity = TimeSpan.FromDays(7);
-    private readonly TimeSpan ExpirationTime = TimeSpan.FromHours(1);
-    private const int MAX_RECURRENT_FAILED_SIGN_IN_ATTEMPT = 5;
+    private readonly IAccountLockoutService _accountLockoutService;
+
     public AuthService(UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager, IUnitOfWork<ApplicationDbContext> unitOfWork,
-        IConfiguration configuration, JwtConfig jwtConfig, ICacheService cacheService)
+        JwtConfig jwtConfig, ICacheService cacheService, IAccountLockoutService accountLockoutService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _unitOfWork = unitOfWork;
-        _configuration = configuration;
+        _accountLockoutService = accountLockoutService;
         _jwtConfig = jwtConfig;
         _cacheService = cacheService;
     }
@@ -137,15 +133,26 @@ public class AuthService : IAuthService
                 throw new AuthenticationException("Account is not active");
             }
 
+            (bool isAccountLocked, int? minutesLeft) = await _accountLockoutService.IsAccountLocked(user.Id);
+            if (isAccountLocked)
+            {
+                throw new AccountLockedException($"Account locked, retry in {minutesLeft} mins");
+            }
 
             bool result = await _userManager.CheckPasswordAsync(user, request.Password);
 
             if (!result)
             {
+                bool wasAccountLocked = await _accountLockoutService.RecordFailedLoginAttempt(user.Id);
+                if (wasAccountLocked)
+                {
+                    // await _notificationManagerService.CreateAccountLockOutNotification(user);
+                    throw new AuthenticationException("Your account have been locked");
+                }
                 throw new AuthenticationException("Invalid username or password");
             }
-
-            JwtToken userToken = GenerateJwtToken(user);
+            await _accountLockoutService.RecordSuccessfulLoginAttempt(user.Id);
+            JwtToken userToken = await GenerateJwtToken(user);
 
             string? userType = user.UserType.GetStringValue();
 
@@ -183,8 +190,8 @@ public class AuthService : IAuthService
             };
         }
 
-        /* CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), hostelId, OtpOperation.EmailConfirmation);
-         await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);*/
+        /*CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), OtpOperation.EmailConfirmation);
+        await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);*/
 
         return new ServiceResponse
         {
@@ -317,7 +324,7 @@ public class AuthService : IAuthService
         };
     }
 
-    public async  Task<ServiceResponse<AuthenticationResponse>> RefreshAccessTokenAsync(string accessToken, string refreshToken)
+    public async Task<ServiceResponse<AuthenticationResponse>> RefreshAccessTokenAsync(string accessToken, string refreshToken)
     {
         try
         {
@@ -329,7 +336,7 @@ public class AuthService : IAuthService
             }
 
             string email = principal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Email).Value;
-            ApplicationUser user = await _userManager.FindByEmailAsync(email);
+            ApplicationUser? user = await _userManager.FindByEmailAsync(email);
             if (user is null)
             {
                 throw new AuthenticationException("Access has expired");
@@ -345,15 +352,15 @@ public class AuthService : IAuthService
                 throw new AuthenticationException("Access has expired");
             }
 
-            var result =  GenerateJwtToken(user);
+            var result = await GenerateJwtToken(user);
             return new ServiceResponse<AuthenticationResponse>
             {
                 StatusCode = HttpStatusCode.OK,
                 Data = new AuthenticationResponse()
                 {
-                     JwtToken = result,
-                      UserId = user.Id,
-                       FullName =  $"{user.FirstName} {user.MiddleName}  {user.LastName}"
+                    JwtToken = result,
+                    UserId = user.Id,
+                    FullName = $"{user.FirstName} {user.MiddleName}  {user.LastName}"
                 }
             };
         }
@@ -365,13 +372,12 @@ public class AuthService : IAuthService
                 Message = ex.Message
             };
         }
-        throw new NotImplementedException();
+
     }
 
-    private JwtToken GenerateJwtToken(ApplicationUser user, string expires = null, List<Claim> additionalClaims = null)
+    private async Task<JwtToken> GenerateJwtToken(ApplicationUser user, string expires = null, List<Claim> additionalClaims = null)
     {
         JwtSecurityTokenHandler jwtTokenHandler = new();
-        // string jwtConfig = _configuration.GetSection("JwtConfig:JwtKey").Value!;
 
         var key = Encoding.ASCII.GetBytes(_jwtConfig.JwtKey);
         string userRole = user.UserType.GetStringValue()!;
@@ -402,8 +408,8 @@ public class AuthService : IAuthService
         {
             Subject = new ClaimsIdentity(claims),
             Expires = string.IsNullOrWhiteSpace(expires)
-                ? DateTime.Now.AddHours(double.Parse(expire))
-                : DateTime.Now.AddMinutes(double.Parse(expires)),
+                ? DateTime.UtcNow.AddHours(double.Parse(expire))
+                : DateTime.UtcNow.AddMinutes(double.Parse(expires)),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
             Issuer = issuer,
             Audience = audience
@@ -411,39 +417,27 @@ public class AuthService : IAuthService
 
         var token = jwtTokenHandler.CreateToken(tokenDescriptor);
         var jwtToken = jwtTokenHandler.WriteToken(token);
+        var refreshToken = await GenerateRefreshTokenAsync(user);
 
         return new JwtToken
         {
             Token = jwtToken,
-            Issued = DateTime.Now,
-            Expires = tokenDescriptor.Expires
+            Issued = DateTime.UtcNow,
+            Expires = tokenDescriptor.Expires,
+            RefreshToken = refreshToken,
         };
     }
-    private async Task<string> GenerateRefreshTokenAsync(string userId)
+    private async Task<string> GenerateRefreshTokenAsync(ApplicationUser user)
     {
         var randomNumber = new byte[32];
-        using (var generator = RandomNumberGenerator.Create())
-        {
-            generator.GetBytes(randomNumber);
-            var refreshToken = Convert.ToBase64String(randomNumber);
-            IEnumerable<RefreshToken> refreshTokens = await _unitOfWork.GetRepository<RefreshToken>()
-                                                                 .GetQueryableList(x => x.UserId == userId && x.IsActive).ToListAsync();
-
-            foreach (var token in refreshTokens)
-            {
-                token.IsActive = false;
-            }
-            _unitOfWork.GetRepository<RefreshToken>().Add(new RefreshToken
-            {
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                ExpiryDate = DateTime.UtcNow.Add(RefreshTokenValidity),
-                IsActive = true,
-                UserId = userId,
-                Token = refreshToken
-            });
-            return refreshToken;
-        }
+        using var generator = RandomNumberGenerator.Create();
+        generator.GetBytes(randomNumber);
+        var refreshToken = Convert.ToBase64String(randomNumber);
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(10);
+        _unitOfWork.GetRepository<ApplicationUser>().Update(user);
+        await _unitOfWork.SaveChangesAsync();
+        return refreshToken;
     }
     private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {

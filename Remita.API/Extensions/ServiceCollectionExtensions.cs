@@ -21,6 +21,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IUnitOfWork<ApplicationDbContext>, UnitOfWork<ApplicationDbContext>>();
         services.AddTransient<IAuthService, AuthService>();
+        services.AddTransient<IAccountLockoutService, AccountLockoutService>();
 
 
 
