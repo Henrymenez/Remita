@@ -63,7 +63,6 @@ public class NotificationManagerService : INotificationManagerService
         var command = new NonTransactionalEmailNotificationDto(EmailCategory.SignInActivity, Constants.SignInEmailSubject, messageId, user.Email!, user.UserName!, contents);
         await SendNonTransactionalEmailNotification(command, CancellationToken.None);
     }
-
     public async Task CreateSignUPNotification(ApplicationUser user)
     {
         var messageId = MessageIdGenerator.GenerateMessageId<SignUpActivity>(user.Id, DateTime.UtcNow.Date.ToShortDateString());
@@ -72,7 +71,6 @@ public class NotificationManagerService : INotificationManagerService
         // send mail here 
         await SendNonTransactionalEmailNotification(command, CancellationToken.None);
     }
-
     public async Task CreateVerifyEmailNotification(ApplicationUser user)
     {
         var otp = await _otpCodeService.GenerateOtpAsync(user.Id, OtpOperation.EmailConfirmation);
@@ -80,9 +78,7 @@ public class NotificationManagerService : INotificationManagerService
         var contents = new List<string>() { user.Email!, otp };
         var command = new TransactionalEmailNotificationDto(EmailCategory.EmailConfirmationOTP, Constants.SignUpEmailSubject, messageId, user.Email!, user.GetFullName(), OtpTtl, contents);
         await SendTransactionalEmailNotification(command, CancellationToken.None);
-        throw new NotImplementedException();
     }
-
     private async Task SendNonTransactionalEmailNotification(NonTransactionalEmailNotificationDto model, CancellationToken cancellationToken)
     {
         SendEmailNotification command = new()
@@ -100,8 +96,6 @@ public class NotificationManagerService : INotificationManagerService
         // await _messageSender.SendAsync(command, cancellationToken);
         await Task.CompletedTask;
     }
-
-
     private async Task SendTransactionalEmailNotification(TransactionalEmailNotificationDto model, CancellationToken cancellationToken)
     {
         SendEmailNotification command = new()

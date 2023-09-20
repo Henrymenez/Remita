@@ -2,7 +2,7 @@
 
 public class Constants
 {
-    public const string SignUpEmailSubject = "Welcome to MakeWeBet!";
+    public const string SignUpEmailSubject = "Welcome to Remita!";
     public const string SignInEmailSubject = "Recent Sign-In Activity";
     public const string LockOutEmailSubject = "Temporary Account Lockout";
     public const string ConfirmationEmailSubject = "Email Confirmation Successful";

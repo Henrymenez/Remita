@@ -8,7 +8,9 @@ using Remita.Models.Domains.User.Enums;
 using Remita.Models.Entities.Domians.User;
 using Remita.Models.Exceptions;
 using Remita.Services.Domains.Auth.Dtos;
+using Remita.Services.Domains.OutboundNotifications;
 using Remita.Services.Domains.Security;
+using Remita.Services.Domains.User;
 using Remita.Services.Utility;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -26,10 +28,12 @@ public class AuthService : IAuthService
     private readonly IUnitOfWork<ApplicationDbContext> _unitOfWork;
     private readonly JwtConfig _jwtConfig;
     private readonly IAccountLockoutService _accountLockoutService;
+    private readonly INotificationManagerService _notificationManagerService;
 
     public AuthService(UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager, IUnitOfWork<ApplicationDbContext> unitOfWork,
-        JwtConfig jwtConfig, ICacheService cacheService, IAccountLockoutService accountLockoutService)
+        JwtConfig jwtConfig, ICacheService cacheService, IAccountLockoutService accountLockoutService,
+        INotificationManagerService notificationManagerService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -37,6 +41,7 @@ public class AuthService : IAuthService
         _accountLockoutService = accountLockoutService;
         _jwtConfig = jwtConfig;
         _cacheService = cacheService;
+        _notificationManagerService = notificationManagerService;
     }
     public async Task<ServiceResponse<AccountResponse>> CreateUser(UserRegistrationRequest request)
     {
@@ -190,13 +195,12 @@ public class AuthService : IAuthService
             };
         }
 
-        /*CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), OtpOperation.EmailConfirmation);
-        await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);*/
+        await _notificationManagerService.CreateVerifyEmailNotification(user);
 
         return new ServiceResponse
         {
             StatusCode = HttpStatusCode.OK,
-            Message = "Email Sent"
+            Message = "An OTP have been sent to your email address"
         };
     }
     public async Task<ServiceResponse> ConfirmEmailAsync(ConfirmEmailDto model)
@@ -221,7 +225,14 @@ public class AuthService : IAuthService
                 Message = "Invalid OTP"
             };
         }
-
+        if(isOtpValid.OTP != model.OTP)
+        {
+            return new ServiceResponse
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = "Invalid OTP"
+            };
+        }
 
         user.EmailConfirmed = true;
         IdentityResult res = await _userManager.UpdateAsync(user);

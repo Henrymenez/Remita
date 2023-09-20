@@ -9,6 +9,8 @@ using Remita.Data.Interfaces;
 using Remita.Models.DatabaseContexts;
 using Remita.Models.Entities.Domians.User;
 using Remita.Services.Domains.Auth;
+using Remita.Services.Domains.OutboundNotifications;
+using Remita.Services.Domains.Security;
 using Remita.Services.Utility;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
@@ -22,6 +24,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnitOfWork<ApplicationDbContext>, UnitOfWork<ApplicationDbContext>>();
         services.AddTransient<IAuthService, AuthService>();
         services.AddTransient<IAccountLockoutService, AccountLockoutService>();
+        services.AddTransient<INotificationManagerService, NotificationManagerService>();
+        services.AddTransient<IOtpCodeService, OtpCodeService>();
 
 
 
