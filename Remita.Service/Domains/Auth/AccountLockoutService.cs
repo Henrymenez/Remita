@@ -8,7 +8,7 @@ namespace Remita.Services.Domains.Auth
     {
         private readonly ICacheService _cacheService;
         private TimeSpan ExpirationTime = TimeSpan.FromHours(1);
-        private const int MAX_RECURRENT_FAILED_SIGN_IN_ATTEMPT = 2;
+        private const int MAX_RECURRENT_FAILED_SIGN_IN_ATTEMPT = 5;
         
         public AccountLockoutService(ICacheService cacheService)
         {

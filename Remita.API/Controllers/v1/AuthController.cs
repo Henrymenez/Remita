@@ -176,7 +176,7 @@ public class AuthController : BaseController
     }
 
 
-    [HttpPost("sign-up")]
+    [HttpPost("sign-up", Name = "sign-up")]
     [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AccountResponse>))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
@@ -197,7 +197,7 @@ public class AuthController : BaseController
         return ComputeApiResponse(result);
     }
 
-    [HttpPost("sign-in")]
+    [HttpPost("sign-in", Name = "sign-in")]
     [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AuthenticationResponse>))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
@@ -220,7 +220,7 @@ public class AuthController : BaseController
 
 
 
-    [HttpPost("password-reset-otp")]
+    [HttpPost("password-reset-otp", Name = "password-reset-otp")]
     [ProducesResponseType(200, Type = typeof(ApiResponse))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
@@ -241,7 +241,7 @@ public class AuthController : BaseController
     }
 
 
-    [HttpPost("password-reset")]
+    [HttpPost("password-reset",Name = "password-reset")]
     [ProducesResponseType(200, Type = typeof(ApiResponse))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
@@ -261,7 +261,7 @@ public class AuthController : BaseController
         return ComputeResponse(Result);
     }
 
-    [HttpPost("verify-email-otp")]
+    [HttpPost("verify-email-otp",Name = "verify-email-otp")]
     [ProducesResponseType(200, Type = typeof(ApiResponse))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
@@ -281,7 +281,7 @@ public class AuthController : BaseController
         return ComputeResponse(Result);
     }
 
-    [HttpPost("verify-email")]
+    [HttpPost("verify-email",Name = "verify-email")]
     [ProducesResponseType(200, Type = typeof(ApiResponse))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
@@ -301,7 +301,7 @@ public class AuthController : BaseController
         return ComputeResponse(Result);
     }
 
-    [HttpPost("refresh")]
+    [HttpPost("refresh",Name = "refresh")]
     [ProducesResponseType(200, Type = typeof(ApiResponse))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]

@@ -22,7 +22,7 @@ public class RouteController : BaseController
     }
     [AllowAnonymous]
 
-    [HttpGet("get-all-routes", Name = "get-all-routes")]
+    [HttpGet("get-all-routes")]
     [SwaggerOperation(Summary = "Gets all routes ")]
     [SwaggerResponse(StatusCodes.Status200OK, Description = "Routes Retrieved")]
     [SwaggerResponse(StatusCodes.Status403Forbidden, Description = "Unauthorized User", Type = typeof(ErrorResponse))]
