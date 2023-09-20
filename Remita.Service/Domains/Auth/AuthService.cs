@@ -10,6 +10,7 @@ using Remita.Models.Exceptions;
 using Remita.Services.Domains.Auth.Dtos;
 using Remita.Services.Domains.OutboundNotifications;
 using Remita.Services.Domains.Security;
+using Remita.Services.Domains.User;
 using Remita.Services.Utility;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -332,7 +333,6 @@ public class AuthService : IAuthService
             StatusCode = HttpStatusCode.OK,
         };
     }
-
     public async Task<ServiceResponse<AuthenticationResponse>> RefreshAccessTokenAsync(string accessToken, string refreshToken)
     {
         try
@@ -343,8 +343,8 @@ public class AuthService : IAuthService
                 throw new AuthenticationException("Access has expired");
 
             }
-
-            string email = principal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Email).Value;
+            string email = principal.FindFirst(ClaimTypes.Email)?.Value;
+         //   string email = principal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Email).Value;
             ApplicationUser? user = await _userManager.FindByEmailAsync(email);
             if (user is null)
             {
@@ -361,7 +361,7 @@ public class AuthService : IAuthService
                 throw new AuthenticationException("Access has expired");
             }
 
-            var result = await GenerateJwtToken(user);
+            var result = await GenerateJwtToken(user)!;
             return new ServiceResponse<AuthenticationResponse>
             {
                 StatusCode = HttpStatusCode.OK,
@@ -369,7 +369,9 @@ public class AuthService : IAuthService
                 {
                     JwtToken = result,
                     UserId = user.Id,
-                    FullName = $"{user.FirstName} {user.MiddleName}  {user.LastName}"
+                    FullName = $"{user.GetFullName()}",
+                    UserType = user.Id,
+                    TwoFactor = user.TwoFactorEnabled
                 }
             };
         }
@@ -383,7 +385,6 @@ public class AuthService : IAuthService
         }
 
     }
-
     private async Task<JwtToken> GenerateJwtToken(ApplicationUser user, string expires = null, List<Claim> additionalClaims = null)
     {
         JwtSecurityTokenHandler jwtTokenHandler = new();
