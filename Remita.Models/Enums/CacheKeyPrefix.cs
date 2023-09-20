@@ -2,5 +2,6 @@
 public enum CacheKeyPrefix
 {
     OtpCode = 1,
+    AccountLockout
 
 }

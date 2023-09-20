@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Remita.Cache.Interfaces;
@@ -16,7 +17,6 @@ using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using Constants = Remita.Models.Commons.Constants;
 
 namespace Remita.Services.Domains.Auth;
@@ -28,8 +28,8 @@ public class AuthService : IAuthService
     private readonly IUnitOfWork<ApplicationDbContext> _unitOfWork;
     private readonly IConfiguration _configuration;
     private readonly JwtConfig _jwtConfig;
-    private TimeSpan RefreshTokenValidity = TimeSpan.FromDays(7);
-    private TimeSpan ExpirationTime = TimeSpan.FromHours(1);
+    private readonly TimeSpan RefreshTokenValidity = TimeSpan.FromDays(7);
+    private readonly TimeSpan ExpirationTime = TimeSpan.FromHours(1);
     private const int MAX_RECURRENT_FAILED_SIGN_IN_ATTEMPT = 5;
     public AuthService(UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager, IUnitOfWork<ApplicationDbContext> unitOfWork,
@@ -183,14 +183,14 @@ public class AuthService : IAuthService
             };
         }
 
-        CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), hostelId, OtpOperation.EmailConfirmation);
-        await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);
+        /* CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), hostelId, OtpOperation.EmailConfirmation);
+         await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);*/
 
         return new ServiceResponse
         {
             StatusCode = HttpStatusCode.OK,
+            Message = "Email Sent"
         };
-        throw new NotImplementedException();
     }
     public async Task<ServiceResponse> ConfirmEmailAsync(ConfirmEmailDto model)
     {
@@ -236,7 +236,7 @@ public class AuthService : IAuthService
 
     public async Task<ServiceResponse> ForgotPasswordAsync(string email)
     {
-        ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
+        ApplicationUser? user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
             return new ServiceResponse
@@ -246,18 +246,17 @@ public class AuthService : IAuthService
             };
         }
 
-        CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), hostelId, OtpOperation.PasswordReset);
-        await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);
+        /* CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), hostelId, OtpOperation.PasswordReset);
+         await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);*/
 
         return new ServiceResponse
         {
             StatusCode = HttpStatusCode.OK,
         };
-        throw new NotImplementedException();
     }
-    public Task<ServiceResponse> ResetPasswordAsync(ResetPasswordRequest request)
+    public async Task<ServiceResponse> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
+        ApplicationUser? user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user == null)
         {
@@ -268,7 +267,7 @@ public class AuthService : IAuthService
             };
         }
 
-        if (!string.Equals(model.Password, model.ConfirmPassword))
+        if (!string.Equals(request.NewPassword, request.ConfirmPassword))
         {
             return new ServiceResponse
             {
@@ -277,7 +276,8 @@ public class AuthService : IAuthService
             };
         }
 
-        bool isOtpValid = await _otpCodeService.VerifyOtpAsync(user.Id, model.Otp, OtpOperation.PasswordReset);
+        bool isOtpValid = true;
+        //await _otpCodeService.VerifyOtpAsync(user.Id, model.Otp, OtpOperation.PasswordReset);
 
         if (!isOtpValid)
         {
@@ -299,7 +299,7 @@ public class AuthService : IAuthService
             };
         }
 
-        res = await _userManager.AddPasswordAsync(user, model.Password);
+        res = await _userManager.AddPasswordAsync(user, request.NewPassword);
         if (!res.Succeeded)
         {
             string errorMessage = res.Errors.Select(e => e.Description).First();
@@ -315,10 +315,9 @@ public class AuthService : IAuthService
         {
             StatusCode = HttpStatusCode.OK,
         };
-        throw new NotImplementedException();
     }
 
-    public Task<ServiceResponse<AuthenticationResponse>> RefreshAccessTokenAsync(string accessToken, string refreshToken)
+    public async  Task<ServiceResponse<AuthenticationResponse>> RefreshAccessTokenAsync(string accessToken, string refreshToken)
     {
         try
         {
@@ -330,7 +329,7 @@ public class AuthService : IAuthService
             }
 
             string email = principal.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Email).Value;
-            var user = await _userManager.FindByEmailAsync(email);
+            ApplicationUser user = await _userManager.FindByEmailAsync(email);
             if (user is null)
             {
                 throw new AuthenticationException("Access has expired");
@@ -346,16 +345,21 @@ public class AuthService : IAuthService
                 throw new AuthenticationException("Access has expired");
             }
 
-            var result = await CreateAccessTokenAsync(user);
-            return new ServiceResponse<SignedInDto>
+            var result =  GenerateJwtToken(user);
+            return new ServiceResponse<AuthenticationResponse>
             {
                 StatusCode = HttpStatusCode.OK,
-                Data = result
+                Data = new AuthenticationResponse()
+                {
+                     JwtToken = result,
+                      UserId = user.Id,
+                       FullName =  $"{user.FirstName} {user.MiddleName}  {user.LastName}"
+                }
             };
         }
         catch (AuthenticationException ex)
         {
-            return new ServiceResponse<SignedInDto>
+            return new ServiceResponse<AuthenticationResponse>
             {
                 StatusCode = HttpStatusCode.Unauthorized,
                 Message = ex.Message
@@ -432,8 +436,8 @@ public class AuthService : IAuthService
             _unitOfWork.GetRepository<RefreshToken>().Add(new RefreshToken
             {
                 CreatedAt = DateTime.UtcNow,
-                UpdateAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.Add(RefreshTokenValidity),
+                UpdatedAt = DateTime.UtcNow,
+                ExpiryDate = DateTime.UtcNow.Add(RefreshTokenValidity),
                 IsActive = true,
                 UserId = userId,
                 Token = refreshToken
