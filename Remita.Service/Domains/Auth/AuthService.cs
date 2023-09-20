@@ -120,7 +120,6 @@ public class AuthService : IAuthService
             };
         }
     }
-
     public async Task<ServiceResponse<AuthenticationResponse>> UserLogin(LoginRequest request)
     {
         try
@@ -251,7 +250,6 @@ public class AuthService : IAuthService
             StatusCode = HttpStatusCode.OK,
         };
     }
-
     public async Task<ServiceResponse> ForgotPasswordAsync(string email)
     {
         ApplicationUser? user = await _userManager.FindByEmailAsync(email);
@@ -264,8 +262,7 @@ public class AuthService : IAuthService
             };
         }
 
-        /* CreateOtpNotificationDto otpNotification = new(user.Id, user.Email!, user.GetFullName(), hostelId, OtpOperation.PasswordReset);
-         await _notificationManagerService.CreateOtpNotificationAsync(otpNotification, cancellationToken);*/
+        await _notificationManagerService.CreateResetPasswordNotification(user);
 
         return new ServiceResponse
         {
@@ -278,7 +275,7 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            return new ServiceResponse
+            return new ServiceResponse 
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Account does not exist"
