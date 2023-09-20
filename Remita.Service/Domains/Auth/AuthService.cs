@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Remita.Cache.Interfaces;
 using Remita.Data.Interfaces;
 using Remita.Models.DatabaseContexts;
+using Remita.Models.Domains.Security;
 using Remita.Models.Domains.User.Enums;
 using Remita.Models.Entities.Domians.User;
 using Remita.Models.Exceptions;
 using Remita.Services.Domains.Auth.Dtos;
+using Remita.Services.Domains.Security;
 using Remita.Services.Utility;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -19,21 +22,25 @@ using Constants = Remita.Models.Commons.Constants;
 namespace Remita.Services.Domains.Auth;
 public class AuthService : IAuthService
 {
+    private readonly ICacheService _cacheService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IUnitOfWork<ApplicationDbContext> _unitOfWork;
     private readonly IConfiguration _configuration;
     private readonly JwtConfig _jwtConfig;
     private TimeSpan RefreshTokenValidity = TimeSpan.FromDays(7);
+    private TimeSpan ExpirationTime = TimeSpan.FromHours(1);
+    private const int MAX_RECURRENT_FAILED_SIGN_IN_ATTEMPT = 5;
     public AuthService(UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager, IUnitOfWork<ApplicationDbContext> unitOfWork,
-        IConfiguration configuration, JwtConfig jwtConfig)
+        IConfiguration configuration, JwtConfig jwtConfig, ICacheService cacheService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _unitOfWork = unitOfWork;
         _configuration = configuration;
         _jwtConfig = jwtConfig;
+        _cacheService = cacheService;
     }
     public async Task<ServiceResponse<AccountResponse>> CreateUser(UserRegistrationRequest request)
     {
@@ -185,7 +192,7 @@ public class AuthService : IAuthService
         };
         throw new NotImplementedException();
     }
-    public async Task<ServiceResponse> ConfirmEmailAsync(ConfirmEmailDto otpDto)
+    public async Task<ServiceResponse> ConfirmEmailAsync(ConfirmEmailDto model)
     {
         ApplicationUser? user = await _userManager.FindByEmailAsync(model.Email);
 
@@ -197,10 +204,9 @@ public class AuthService : IAuthService
                 Message = "Account does not exist"
             };
         }
-
-        bool isOtpValid = await _otpCodeService.VerifyOtpAsync(user.Id, model.Otp, OtpOperation.EmailConfirmation);
-
-        if (!isOtpValid)
+        string cacheKey = CacheKeySelector.OtpCodeCacheKey(user.Id, OtpOperation.EmailConfirmation);
+        ConfirmEmailDto? isOtpValid = await _cacheService.ReadFromCache<ConfirmEmailDto>(cacheKey);
+        if (isOtpValid == null)
         {
             return new ServiceResponse
             {
@@ -208,6 +214,7 @@ public class AuthService : IAuthService
                 Message = "Invalid OTP"
             };
         }
+
 
         user.EmailConfirmed = true;
         IdentityResult res = await _userManager.UpdateAsync(user);
@@ -225,7 +232,6 @@ public class AuthService : IAuthService
         {
             StatusCode = HttpStatusCode.OK,
         };
-        throw new NotImplementedException();
     }
 
     public async Task<ServiceResponse> ForgotPasswordAsync(string email)
