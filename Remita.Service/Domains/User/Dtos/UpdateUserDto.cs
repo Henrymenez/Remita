@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Remita.Models.Domains.User.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Remita.Services.Domains.User.Dtos;
 
@@ -10,6 +11,5 @@ public record UpdateUserDto
     public string Email { get; set; } = null!;
     [Phone]
     public string MobileNumber { get; set; } = null!;
-    public string UserType { get; set; } = null!;
 
 }
