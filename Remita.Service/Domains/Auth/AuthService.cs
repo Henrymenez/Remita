@@ -10,7 +10,6 @@ using Remita.Models.Exceptions;
 using Remita.Services.Domains.Auth.Dtos;
 using Remita.Services.Domains.OutboundNotifications;
 using Remita.Services.Domains.Security;
-using Remita.Services.Domains.User;
 using Remita.Services.Utility;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -29,11 +28,12 @@ public class AuthService : IAuthService
     private readonly JwtConfig _jwtConfig;
     private readonly IAccountLockoutService _accountLockoutService;
     private readonly INotificationManagerService _notificationManagerService;
+    private readonly IOtpCodeService _otpCodeService;
 
     public AuthService(UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager, IUnitOfWork<ApplicationDbContext> unitOfWork,
         JwtConfig jwtConfig, ICacheService cacheService, IAccountLockoutService accountLockoutService,
-        INotificationManagerService notificationManagerService)
+        INotificationManagerService notificationManagerService, IOtpCodeService otpCodeService)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -42,6 +42,7 @@ public class AuthService : IAuthService
         _jwtConfig = jwtConfig;
         _cacheService = cacheService;
         _notificationManagerService = notificationManagerService;
+        _otpCodeService = otpCodeService;
     }
     public async Task<ServiceResponse<AccountResponse>> CreateUser(UserRegistrationRequest request)
     {
@@ -224,7 +225,7 @@ public class AuthService : IAuthService
                 Message = "Invalid OTP"
             };
         }
-        if(isOtpValid.OTP != model.OTP)
+        if (isOtpValid.OTP != model.OTP)
         {
             return new ServiceResponse
             {
@@ -275,7 +276,7 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            return new ServiceResponse 
+            return new ServiceResponse
             {
                 StatusCode = HttpStatusCode.NotFound,
                 Message = "Account does not exist"
@@ -291,8 +292,8 @@ public class AuthService : IAuthService
             };
         }
 
-        bool isOtpValid = true;
-        //await _otpCodeService.VerifyOtpAsync(user.Id, model.Otp, OtpOperation.PasswordReset);
+        bool isOtpValid = await _otpCodeService.VerifyOtpAsync(user.Id, request.AuthenticationToken, OtpOperation.PasswordReset);
+
 
         if (!isOtpValid)
         {

@@ -49,7 +49,6 @@ public class NotificationManagerService : INotificationManagerService
         var contents = new List<string>() { user.UserName!, otp };
         var command = new TransactionalEmailNotificationDto(EmailCategory.ResetPasswordOTP, Constants.ForgotPasswordEmailSubject, messageId, user.Email!, user.UserName!, OtpTtl, contents);
         await SendTransactionalEmailNotification(command, CancellationToken.None);
-        throw new NotImplementedException();
     }
 
     public async Task CreateSignInNotification(ApplicationUser user)
