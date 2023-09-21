@@ -3,127 +3,169 @@ using Remita.Models.Domains.User.Enums;
 using Remita.Models.Entities.Domians.User;
 using Remita.Services.Domains.Roles.Dtos;
 using Remita.Services.Utility;
+using System.Net;
 
 namespace Remita.Services.Domains.Roles;
 
 public class RoleService : IRoleService
 {
-    public RoleService()
-    {
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
 
+    public RoleService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+    {
+        _roleManager = roleManager;
+        _userManager = userManager;
     }
-    public Task<ServiceResponse<RoleResponseDto>> AddUserToRole(string userId, string roleName)
+    public async Task<ServiceResponse<RoleResponseDto>> AddUserToRole(string userId, string roleName)
     {
-        ApplicationUser user = await _userManager.FindByIdAsync(userId);
+        ApplicationUser? user = await _userManager.FindByIdAsync(userId);
 
-        if (user is null)
+        if (user == null)
         {
-            throw new InvalidOperationException($"User '{userId}' does not Exist!");
+            return new ServiceResponse<RoleResponseDto>()
+            {
+                Message = $"User '{userId}' does not Exist!",
+                StatusCode = HttpStatusCode.BadRequest
+            };
         }
-        ApplicationRole role = await _roleManager.FindByNameAsync(roleName);
+        ApplicationRole? role = await _roleManager.FindByNameAsync(roleName);
 
-        if (role is null)
+        if (role == null)
         {
-            throw new InvalidOperationException($"Role '{roleName}' does not Exist!");
+            return new ServiceResponse<RoleResponseDto>()
+            {
+                Message = $"Role '{roleName}' does not Exist!",
+                StatusCode = HttpStatusCode.BadRequest
+            };
         }
 
-        user.UserTypeId = role.Type;
+        user.UserType = role.Type;
         user.UpdatedAt = DateTime.Now;
 
-        await _userManager.AddToRoleAsync(user, role.Name);
+        await _userManager.AddToRoleAsync(user, role.Name!);
 
-        return new Response<RoleResponse>()
+        return new ServiceResponse<RoleResponseDto>()
         {
             Message = $"{userId} has been assigned a {roleName} role",
-            IsSuccessful = true
+            StatusCode = HttpStatusCode.OK
         };
     }
 
-    public Task<RoleResponseDto> CreateRole(RoleDto request)
+    public async Task<ServiceResponse<RoleResponseDto>> CreateRole(RoleDto request)
     {
-        ApplicationRole role = await _roleManager.FindByNameAsync(request.Name.Trim().ToLower());
+        ApplicationRole? role = await _roleManager.FindByNameAsync(request.Name.Trim().ToLower());
 
-        if (role is not null)
+        if (role != null)
         {
-            throw new InvalidOperationException($"Role with name {request.Name} already exist");
+            return new ServiceResponse<RoleResponseDto>()
+            {
+                Message = $"Role with name {request.Name} already exist",
+                StatusCode = HttpStatusCode.BadRequest
+            };
         }
 
 
         if (Enum.IsDefined(typeof(UserType), request.UserType))
         {
-            throw new InvalidOperationException($"Role with UserType {request.UserType} already exist");
+            return new ServiceResponse<RoleResponseDto>()
+            {
+                Message = $"Role with UserType {request.UserType} already exist",
+                StatusCode = HttpStatusCode.BadRequest
+            };
         }
+
+        UserType type = (UserType)Enum.Parse(typeof(UserType), request.UserType);
         ApplicationRole roleToCreate = new()
         {
             Name = request.Name,
-            Type = request.UserType,
+            Type = type,
             CreatedAt = DateTime.Now
         };
 
         await _roleManager.CreateAsync(roleToCreate);
 
-        return new RoleResponse
+        return new ServiceResponse<RoleResponseDto>()
         {
-            Id = roleToCreate.Id,
-            Name = roleToCreate.Name,
-            Active = roleToCreate.Active
+            StatusCode = HttpStatusCode.OK,
+            Data = new RoleResponseDto()
+            {
+                Id = roleToCreate.Id,
+                Name = roleToCreate.Name,
+                Active = roleToCreate.Active
+            }
         };
     }
 
-    public Task<ServiceResponse<RoleResponseDto>> DeleteRole(string name)
+    public async Task<ServiceResponse<RoleResponseDto>> DeleteRole(string name)
     {
-        ApplicationRole role = await _roleManager.FindByNameAsync(name.Trim().ToLower());
+        ApplicationRole? role = await _roleManager.FindByNameAsync(name.Trim().ToLower());
 
-        if (role is null)
+        if (role == null)
         {
-            throw new InvalidOperationException($" The Role '{name}' does not Exist");
+            return new ServiceResponse<RoleResponseDto>()
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Message = $" The Role '{name}' does not Exist"
+            };
         }
 
-        if (_userManager.Users.Any(x => x.UserTypeId == role.Type))
+        if (_userManager.Users.Any(x => x.UserType == role.Type))
         {
-            return new Response<RoleResponse>
+            return new ServiceResponse<RoleResponseDto>()
             {
                 Message = $"Assigned roles cannot be deleted",
-                IsSuccessful = false,
+                StatusCode = HttpStatusCode.BadRequest
             };
         }
 
         await _roleManager.DeleteAsync(role);
 
-        return new Response<RoleResponse>
+        return new ServiceResponse<RoleResponseDto>()
         {
             Message = $"{name} has been successfully deleted",
-            IsSuccessful = true,
+            StatusCode = HttpStatusCode.OK
         };
     }
 
-    public Task<ServiceResponse<RoleResponseDto>> EditRole(string id, string name)
+    public async Task<ServiceResponse<RoleResponseDto>> EditRole(string id, string name)
     {
-        ApplicationRole role = await _roleManager.FindByIdAsync(id);
-        if (role is null)
+        ApplicationRole? role = await _roleManager.FindByIdAsync(id);
+        if (role == null)
         {
-            throw new InvalidOperationException($"Role with {id} not found");
+            return new ServiceResponse<RoleResponseDto>
+            {
+                Message = $"Role with {id} not found",
+                StatusCode = HttpStatusCode.NotFound
+            };
+
         }
         role.Name = name;
         role.UpdatedAt = DateTime.Now;
 
         await _roleManager.UpdateAsync(role);
-        return new Response<RoleResponse>
+        return new ServiceResponse<RoleResponseDto>
         {
-            Message = $"Update Successful",
-            IsSuccessful = true,
+            Data = new RoleResponseDto
+            {
+                Active = role.Active,
+                Name = role.Name,
+                Id = role.Id
+            },
+            StatusCode = HttpStatusCode.OK,
+            Message = "Successfully Updated"
         };
     }
 
-    public Task<ServiceResponse<IEnumerable<string>>> GetAllRoles()
+    public async Task<ServiceResponse<IEnumerable<string>>> GetAllRoles()
     {
         var myRoles = _roleManager.Roles.Select(x => x.Name).ToList();
 
-        return new Response<IEnumerable<string>>
+        return new ServiceResponse<IEnumerable<string>>
         {
-            Message = "Roles:",
-            Result = myRoles,
-            IsSuccessful = true
+            Data = myRoles,
+            Message = "Roles",
+            StatusCode = HttpStatusCode.OK,
 
         };
     }
