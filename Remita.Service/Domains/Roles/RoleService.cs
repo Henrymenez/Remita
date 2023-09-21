@@ -18,25 +18,25 @@ public class RoleService : IRoleService
         _roleManager = roleManager;
         _userManager = userManager;
     }
-    public async Task<ServiceResponse<RoleResponseDto>> AddUserToRole(string userId, string roleName)
+    public async Task<ServiceResponse<RoleResponseDto>> AddUserToRole(AddRoleDto addRoleDto)
     {
-        ApplicationUser? user = await _userManager.FindByIdAsync(userId);
+        ApplicationUser? user = await _userManager.FindByIdAsync(addRoleDto.userId);
 
         if (user == null)
         {
             return new ServiceResponse<RoleResponseDto>()
             {
-                Message = $"User '{userId}' does not Exist!",
+                Message = $"User '{addRoleDto.userId}' does not Exist!",
                 StatusCode = HttpStatusCode.BadRequest
             };
         }
-        ApplicationRole? role = await _roleManager.FindByNameAsync(roleName);
+        ApplicationRole? role = await _roleManager.FindByNameAsync(addRoleDto.roleName);
 
         if (role == null)
         {
             return new ServiceResponse<RoleResponseDto>()
             {
-                Message = $"Role '{roleName}' does not Exist!",
+                Message = $"Role '{addRoleDto.roleName}' does not Exist!",
                 StatusCode = HttpStatusCode.BadRequest
             };
         }
@@ -48,7 +48,7 @@ public class RoleService : IRoleService
 
         return new ServiceResponse<RoleResponseDto>()
         {
-            Message = $"{user.GetFullName()} has been assigned a {roleName} role",
+            Message = $"{user.GetFullName()} has been assigned a {addRoleDto.roleName} role",
             StatusCode = HttpStatusCode.OK
         };
     }
@@ -120,19 +120,19 @@ public class RoleService : IRoleService
         };
     }
 
-    public async Task<ServiceResponse<RoleResponseDto>> EditRole(string id, string name)
+    public async Task<ServiceResponse<RoleResponseDto>> EditRole(EditRoleDto editRoleDto)
     {
-        ApplicationRole? role = await _roleManager.FindByIdAsync(id);
+        ApplicationRole? role = await _roleManager.FindByIdAsync(editRoleDto.RoleId);
         if (role == null)
         {
             return new ServiceResponse<RoleResponseDto>
             {
-                Message = $"Role with {id} not found",
+                Message = $"Role with {editRoleDto.RoleId} not found",
                 StatusCode = HttpStatusCode.NotFound
             };
 
         }
-        role.Name = name;
+        role.Name = editRoleDto.name;
         role.UpdatedAt = DateTime.Now;
 
         await _roleManager.UpdateAsync(role);
