@@ -11,6 +11,7 @@ using Remita.Models.Entities.Domians.User;
 using Remita.Services.Domains.Admin;
 using Remita.Services.Domains.Auth;
 using Remita.Services.Domains.OutboundNotifications;
+using Remita.Services.Domains.Roles;
 using Remita.Services.Domains.Security;
 using Remita.Services.Utility;
 using System.IdentityModel.Tokens.Jwt;
@@ -28,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<INotificationManagerService, NotificationManagerService>();
         services.AddTransient<IOtpCodeService, OtpCodeService>();
         services.AddTransient<IAdminService,AdminService>();
+        services.AddTransient<IRoleService, RoleService>();
 
 
 

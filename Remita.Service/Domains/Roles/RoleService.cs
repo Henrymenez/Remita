@@ -2,6 +2,7 @@
 using Remita.Models.Domains.User.Enums;
 using Remita.Models.Entities.Domians.User;
 using Remita.Services.Domains.Roles.Dtos;
+using Remita.Services.Domains.User;
 using Remita.Services.Utility;
 using System.Net;
 
@@ -47,7 +48,7 @@ public class RoleService : IRoleService
 
         return new ServiceResponse<RoleResponseDto>()
         {
-            Message = $"{userId} has been assigned a {roleName} role",
+            Message = $"{user.GetFullName()} has been assigned a {roleName} role",
             StatusCode = HttpStatusCode.OK
         };
     }
@@ -65,21 +66,12 @@ public class RoleService : IRoleService
             };
         }
 
-
-        if (Enum.IsDefined(typeof(UserType), request.UserType))
-        {
-            return new ServiceResponse<RoleResponseDto>()
-            {
-                Message = $"Role with UserType {request.UserType} already exist",
-                StatusCode = HttpStatusCode.BadRequest
-            };
-        }
-
-        UserType type = (UserType)Enum.Parse(typeof(UserType), request.UserType);
         ApplicationRole roleToCreate = new()
         {
+            Id = Guid.NewGuid().ToString(),
+            Active = true,
             Name = request.Name,
-            Type = type,
+            Type = request.UserType,
             CreatedAt = DateTime.Now
         };
 

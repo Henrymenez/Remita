@@ -1,6 +1,8 @@
-﻿namespace Remita.Services.Domains.Roles.Dtos;
+﻿using Remita.Models.Utility;
 
-public record RoleResponseDto
+namespace Remita.Services.Domains.Roles.Dtos;
+
+public record RoleResponseDto : BaseRecord
 {
     public string Id { get; set; } = null!;
     public string Name { get; set; } = null!;
