@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IOtpCodeService, OtpCodeService>();
         services.AddTransient<IAdminService,AdminService>();
         services.AddTransient<IRoleService, RoleService>();
+        services.AddTransient<IRoleClaimService, RoleClaimService>();
 
 
 
