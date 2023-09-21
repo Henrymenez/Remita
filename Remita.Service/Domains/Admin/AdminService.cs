@@ -13,11 +13,34 @@ namespace Remita.Services.Domains.Admin;
 public class AdminService : IAdminService
 {
     private readonly IUnitOfWork<ApplicationDbContext> _unitOfWork;
+    private readonly IRepository<ApplicationUser> _userRepo;
     private readonly IMapper _mapper;
     public AdminService(IUnitOfWork<ApplicationDbContext> unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _userRepo = _unitOfWork.GetRepository<ApplicationUser>();
+    }
+
+    public async Task<ServiceResponse> ActivateUser(string email)
+    {
+        var user = await _userRepo.SingleAsync(u => u.Email == email);
+        if (user == null)
+        {
+            return new ServiceResponse()
+            {
+                Message = "User Not Found",
+                StatusCode = HttpStatusCode.NotFound
+            };
+        }
+        user.Active = true;
+        _userRepo.Update(user);
+        await _unitOfWork.SaveChangesAsync();
+        return new ServiceResponse()
+        {
+            Message = "User Account Activated",
+            StatusCode = HttpStatusCode.OK
+        };
     }
 
     public Task<ServiceResponse<UserResponse>> CreateNewUser(AdminUserRegistrationDto request)
@@ -27,7 +50,7 @@ public class AdminService : IAdminService
 
     public async Task<ServiceResponse> DeleteUser(string email)
     {
-        var user = await _unitOfWork.GetRepository<ApplicationUser>().SingleAsync(u => u.Email == email);
+        var user = await _userRepo.SingleAsync(u => u.Email == email);
         if (user == null)
         {
             return new ServiceResponse()
@@ -36,12 +59,13 @@ public class AdminService : IAdminService
                 StatusCode = HttpStatusCode.NotFound
             };
         }
-        _unitOfWork.GetRepository<ApplicationUser>().Delete(user);
+        user.Active = false;
+        _userRepo.Update(user);
         await _unitOfWork.SaveChangesAsync();
         return new ServiceResponse()
         {
             Message = "User Account Deleted",
-            StatusCode = HttpStatusCode.NoContent
+            StatusCode = HttpStatusCode.OK
         };
     }
 

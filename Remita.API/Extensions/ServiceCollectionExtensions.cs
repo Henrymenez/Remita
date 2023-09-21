@@ -8,6 +8,7 @@ using Remita.Data.Implementation;
 using Remita.Data.Interfaces;
 using Remita.Models.DatabaseContexts;
 using Remita.Models.Entities.Domians.User;
+using Remita.Services.Domains.Admin;
 using Remita.Services.Domains.Auth;
 using Remita.Services.Domains.OutboundNotifications;
 using Remita.Services.Domains.Security;
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAccountLockoutService, AccountLockoutService>();
         services.AddTransient<INotificationManagerService, NotificationManagerService>();
         services.AddTransient<IOtpCodeService, OtpCodeService>();
+        services.AddTransient<IAdminService,AdminService>();
 
 
 

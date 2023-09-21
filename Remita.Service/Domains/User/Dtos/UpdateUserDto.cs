@@ -1,5 +1,4 @@
-﻿using Remita.Models.Domains.User.Enums;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Remita.Services.Domains.User.Dtos;
 

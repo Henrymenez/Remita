@@ -239,6 +239,9 @@ public class BaseController : ControllerBase
             case HttpStatusCode.BadRequest:
                 response = new ApiResponse(false, serviceResponse.Message);
                 return BadRequest(response);
+            case HttpStatusCode.NoContent:
+                response = new ApiResponse(false, serviceResponse.Message);
+                return NoContent();
             default:
                 throw new ArgumentOutOfRangeException("HTTP Status Code Could Not Be Deciphered", nameof(serviceResponse.StatusCode));
 

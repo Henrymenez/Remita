@@ -9,4 +9,5 @@ public interface IAdminService
     Task<ServiceResponse<UserResponse>> UpdateUser(string email, UpdateUserDto request);
     Task<ServiceResponse<UserResponse>> CreateNewUser(AdminUserRegistrationDto request);
     Task<ServiceResponse> DeleteUser(string email);
+    Task<ServiceResponse> ActivateUser(string email);
 }
