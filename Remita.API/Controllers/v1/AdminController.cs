@@ -27,7 +27,7 @@ public class AdminController : BaseController
     public async Task<IActionResult> CreateUser(AdminUserRegistrationDto request)
     {
         var response = await _adminService.CreateNewUser(request);
-        return Ok(response);
+        return ComputeApiResponse(response);
     }
 
     [HttpPut("user-update", Name = "user-update")]
@@ -38,7 +38,7 @@ public class AdminController : BaseController
     public async Task<IActionResult> UpdateUser(string email, [FromBody] UpdateUserDto request)
     {
         var response = await _adminService.UpdateUser(email, request);
-        return Ok(response);
+        return ComputeResponse(response);
     }
 
     [HttpPut("activate-user", Name = "user-activate")]
