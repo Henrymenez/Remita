@@ -36,9 +36,9 @@ public class RolesController : BaseController
     [ProducesResponseType(200, Type = typeof(ApiRecordResponse<RoleResponseDto>))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
-    public async Task<IActionResult> EditRole(string id, string name)
+    public async Task<IActionResult> EditRole(EditRoleDto editRoleDto)
     {
-        var response = await _roleService.EditRole(id, name);
+        var response = await _roleService.EditRole(editRoleDto);
         return ComputeApiResponse(response);
     }
 
@@ -58,9 +58,9 @@ public class RolesController : BaseController
     [ProducesResponseType(200, Type = typeof(ApiRecordResponse<RoleResponseDto>))]
     [ProducesResponseType(404, Type = typeof(ApiResponse))]
     [ProducesResponseType(400, Type = typeof(ApiResponse))]
-    public async Task<IActionResult> AddUserToRole(string userId, string roleName)
+    public async Task<IActionResult> AddUserToRole(AddRoleDto addRoleDto)
     {
-        var result = await _roleService.AddUserToRole(userId, roleName);
+        var result = await _roleService.AddUserToRole(addRoleDto);
         return ComputeApiResponse(result);
 
     }
