@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Remita.Controllers.v1.Shared;
+using Remita.Models.Utility;
+using Remita.Services.Domains.Auth.Dtos;
 using Remita.Services.Domains.Roles;
 using Remita.Services.Domains.Roles.Dtos;
 using Swashbuckle.AspNetCore.Annotations;
@@ -9,7 +11,7 @@ namespace Remita.Api.Controllers.v1;
 [Route("api/v{version:apiVersion}/roles")]
 [ApiVersion("1.0")]
 [ApiController]
-public class RolesController : ControllerBase
+public class RolesController : BaseController
 {
     private readonly IRoleService _roleService;
     public RolesController(IRoleService roleService)
@@ -20,11 +22,9 @@ public class RolesController : ControllerBase
 
     [HttpPost("Create-Role", Name = "Create-New-Role")]
     [SwaggerOperation(Summary = "Creates user")]
-   /* [SwaggerResponse(StatusCodes.Status200OK, Description = "UserId of created user", Type = typeof(RoleResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Role already exists", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "UserType already exists", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Failed to create role", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
+    [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AccountResponse>))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
     public async Task<IActionResult> CreateRole(RoleDto request)
     {
         var response = await _roleService.CreateRole(request);
@@ -33,10 +33,9 @@ public class RolesController : ControllerBase
 
     [HttpPut("Edit-Role", Name = "Edit-Role")]
     [SwaggerOperation(Summary = "Edits An Existing Role")]
-  /*  [SwaggerResponse(StatusCodes.Status200OK, Description = "Role name has been updated", Type = typeof(RoleResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "UserId does not exist", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "Failed to Edit Role", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
+    [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AccountResponse>))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
     public async Task<ActionResult> EditRole(string id, string name)
     {
         var response = await _roleService.EditRole(id, name);
@@ -45,9 +44,9 @@ public class RolesController : ControllerBase
 
     [HttpDelete("Delete-Role", Name = "Delete-Existing-Role")]
     [SwaggerOperation(Summary = "Deletes An Existing Role")]
-   /* [SwaggerResponse(StatusCodes.Status200OK, Description = "Role Name that was created", Type = typeof(RoleResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "RoleName does not exist", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
+    [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AccountResponse>))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
     public async Task<IActionResult> DeleteRole(string name)
     {
         var response = await _roleService.DeleteRole(name);
@@ -57,10 +56,9 @@ public class RolesController : ControllerBase
 
     [HttpPut("Add-User-To-Role", Name = "Add-User-To-Role")]
     [SwaggerOperation(Summary = "Add User To Role")]
-   /* [SwaggerResponse(StatusCodes.Status200OK, Description = "Adds a User to an available role", Type = typeof(RoleResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "UserId does not exist", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status400BadRequest, Description = "RoleName does not exist", Type = typeof(ErrorResponse))]
-    [SwaggerResponse(StatusCodes.Status500InternalServerError, Description = "It's not you, it's us", Type = typeof(ErrorResponse))]*/
+    [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AccountResponse>))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
     public async Task<IActionResult> AddUserToRole(string userId, string roleName)
     {
         var result = await _roleService.AddUserToRole(userId, roleName);
@@ -69,7 +67,9 @@ public class RolesController : ControllerBase
     }
     [HttpGet("Get-All-Roles", Name = "Get-All-Roles")]
     [SwaggerOperation(Summary = "Get All Roles")]
-    //[SwaggerResponse(StatusCodes.Status200OK, Description = "View all Available Roles", Type = typeof(RoleResponse))]
+    [ProducesResponseType(200, Type = typeof(ApiRecordResponse<AccountResponse>))]
+    [ProducesResponseType(404, Type = typeof(ApiResponse))]
+    [ProducesResponseType(400, Type = typeof(ApiResponse))]
     public async Task<IActionResult> GetAllRoles()
     {
         var result = await _roleService.GetAllRoles();
